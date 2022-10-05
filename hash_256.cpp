@@ -6,6 +6,7 @@ using std::string;
 using std::cout;
 using std::endl;
 string hash(string input);
+unsigned int getblock(string block, int blocknr);
 
 int main()
 {
@@ -17,19 +18,21 @@ int main()
 
 string hash(string input)
 {
-  int bytesleft = input.length() % 4; //likusiu baitu skaiciu padalinus is 4
-  int blockamount = (input.length() - bytesleft) / 4; //4 baitu blokai
-  int blocknr;
-  for (const auto &item : input)
+  int x;
+  const int bytesleft = input.length() % 4; //likusiu baitu skaiciu padalinus is 4
+  const int blockamount = (input.length() - bytesleft) / 4; //4 baitu blokai
+  cout<<blockamount<<endl<<bytesleft<<endl;
+  for (int blocknr = 0; blocknr < blockamount; blocknr++)
   {
-    calculation(item, blocknr);
+    x = getblock(input, blocknr);
   }
-  //cout<<toHex.str()<<endl;
-  std::stringstream ss;
-  //ss<<std::hex<<int(sum);
-  return ss.str();
+  return input;
 }
-unsigned int calculation(string block, int blocknr)
-{
 
+unsigned int getblock(string block, int blocknr) //funkcija paima po 4 elementus, juos pavercia i ascii decimal vertes ir sudeda
+{
+  return	 block[(blocknr * 4)] +
+      (block[(blocknr * 4) + 1]) +
+			(block[(blocknr * 4) + 2]) +
+			(block[(blocknr * 4) + 3]);
 }
