@@ -17,23 +17,19 @@ int main()
 
 string hash(string input)
 {
-  int x, sum=0;
-  std::stringstream toHex;
+  int bytesleft = input.length() % 4; //likusiu baitu skaiciu padalinus is 4
+  int blockamount = (input.length() - bytesleft) / 4; //4 baitu blokai
+  int blocknr;
   for (const auto &item : input)
   {
-    toHex<<std::hex<<int(item);
-    cout<<toHex.str()<<endl;
-    toHex>>x;
-    cout<<x<<endl;
-    sum=sum+(x^70);
-    toHex.str("");
-    cout<<toHex.str();
-    x=0;
+    calculation(item, blocknr);
   }
-  cout<<toHex.str();
-  cout<<toHex.str()<<endl;
-  cout<<sum<<endl;
+  //cout<<toHex.str()<<endl;
   std::stringstream ss;
-  ss<<std::hex<<int(sum);
+  //ss<<std::hex<<int(sum);
   return ss.str();
+}
+unsigned int calculation(string block, int blocknr)
+{
+
 }
