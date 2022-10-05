@@ -17,17 +17,23 @@ int main()
 
 string hash(string input)
 {
-  int x;
+  int x, sum=0;
   std::stringstream toHex;
   for (const auto &item : input)
   {
     toHex<<std::hex<<int(item);
+    cout<<toHex.str()<<endl;
+    toHex>>x;
+    cout<<x<<endl;
+    sum=sum+(x^70);
+    toHex.str("");
+    cout<<toHex.str();
+    x=0;
   }
+  cout<<toHex.str();
   cout<<toHex.str()<<endl;
-  toHex>>x;
-  x=x^70;
-  cout<<x<<endl;
+  cout<<sum<<endl;
   std::stringstream ss;
-  ss<<std::hex<<int(x);
+  ss<<std::hex<<int(sum);
   return ss.str();
 }
