@@ -15,7 +15,7 @@ int main()
   string input = "";
   cout<<"Iveskite savo string: ";
   std::getline(std::cin, input);
-  cout<<"Sugeneruotas hash: "<<hash(input);
+  cout<<"Sugeneruotas hash: "<< endl << hash(input);
 }
 
 /*prideti 0 gale kad butu 256bitai
@@ -24,15 +24,17 @@ paskutiniai bitai parodo kiek simboliu buvo zinutej
 */
 string toBinary(int x)
 {
+  cout << x <<endl;
   std::bitset<8> bin_x(x);
+  cout<<bin_x<< endl;
   return bin_x.to_string();
 }
 
 string hash(string input)
 {
   string s = "";
-  string orgLenght = toBinary(input.length()); //reikia padaryti int to binary conversion
-  cout<<input.length()<<endl;
+  std::bitset<32> orgLenght(input.length());
+  //cout<<input.length()<<endl;
   for (int i = 0; i < input.length(); i++)
     {
         s += toBinary(input[i]);
@@ -40,9 +42,9 @@ string hash(string input)
   s += '1'; //pazymeti, nuo kur prasideda pridetiniai nuliai
   int pow = (s.length() + 64) / 256; // koks 256 laipsnis
   if(pow < 1) pow++;
-  int apendZeros = (256 * pow) - s.length() - 64;
-
-  s.append(apendZeros, '0'); 
+  int apendZeros = (256 * pow) - s.length() - 32; //32bitai saugoti string ilgiui
+  s.append(apendZeros, '0'); //padaro 224 bitu ilgio
+  s += orgLenght.to_string();
   cout<<s;
   return "";
 }
