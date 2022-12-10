@@ -5,19 +5,23 @@
 #include <bitset>
 #include <vector>
 #include <algorithm>
+#include <iomanip>
+#include <fstream>
 
+using namespace std;
 
-using std::string;
-using std::vector;
-using std::cout;
-using std::endl;
 string toBinary(int x);
-string hash(string input);
+string convert(string input);
+string hashing(int pow, string s);
+void read_file(string input);
 string rightrotate(string s, int d);
 string sigma0(string s);
 string sigma1(string s);
 string sigma2(string s);
 string sigma3(string s);
+string sigma4(string a, string b, string c);
+string sigma5(string a, string b, string c);
+string toHex(string bin);
 string XOR(string a, string b);
 void generateBlocks(vector<string> s);
 
@@ -55,74 +59,108 @@ const string sha256_k[64] =
 
 int main()
 {
+  bool choice;
   string input = "";
-  cout<<"Iveskite savo string: ";
-  std::getline(std::cin, input);
-  cout<<"Sugeneruotas hash: "<< endl << hash(input);
+  cout << "Skaityti faila(1), ivesti(0): ";
+  cin >> choice;
+	if (choice) read_file(input);
+  else
+  {
+    cout << "Iveskite teksta: ";
+    getline(cin >> ws, input);
+    cout << "Sugeneruotas hash: "<< endl << convert(input);
+  }
 }
 
-/*prideti 0 gale kad butu 256bitai
-paskutiniai bitai parodo kiek simboliu buvo zinutej
+void read_file(string input) 
+{
+  string pav;
+  cout << "Failo pavadinimas be .txt : " << endl;
+  cin >> pav;
+  ifstream in("./tests/" + pav + ".txt");
+  stringstream buffer;
+  buffer.clear();
+  if (in.is_open()) 
+  {
+    buffer << in.rdbuf();
+    input = buffer.str();
+    cout << "Sugeneruotas hash: "<< endl << convert(input);
+  } 
+  else 
+  {
+    cout << "Nepavyko atidaryti failo." << endl;
+    exit;
+  }
+}
 
-*/
 string toBinary(int x)
 {
-  //cout << x <<endl;
   std::bitset<8> bin_x(x);
-  //cout<<bin_x<< endl;
   return bin_x.to_string();
 }
 
-string hash(string input)
+string convert(string input)
 {
   string s = "";
-  std::bitset<32> orgLenght(input.length());
+  int orgL = input.length();
+  std::bitset<32> orgLenght(orgL);
   //cout<<input.length()<<endl;
-  for (int i = 0; i < input.length(); i++)
+  for (int i = 0; i < orgL; i++)
     {
         s += toBinary(input[i]);
-    } //convert to binary
-  s += '1'; //pazymeti, nuo kur prasideda pridetiniai nuliai
-  int pow = (s.length() + 32) / 256; // koks 256 laipsnis
-  if(pow < 1) pow++;
-  int apendZeros = (256 * pow) - s.length() - 32; //32bitai saugoti string ilgiui
-  s.append(apendZeros, '0'); //padaro 224 bitu ilgio
-  s += orgLenght.to_string();
+    }                                 //convert to binary
 
-  cout<<s<<endl;
-  
+  s += '1';                           //pazymeti, nuo kur prasideda pridetiniai nuliai
+  int newL = s.length();
+  int pow = ((newL + 32) / 256) + 1;  // koks 256 laipsnis
+  int apendZeros = (256 * pow) - newL - 32; //32bitai saugoti string ilgiui
+  s.append(apendZeros, '0');          //padaro 224 bitu ilgio
+  s += orgLenght.to_string();
+  cout<<endl <<s<<endl;
   int size = pow * 8;
 
+  return hashing(pow, s);
+}
+
+string hashing(int pow, string s)
+{
   vector<string> data;
   int index = 0;
   string buffer;
 
-
-  for (int i = 0; i < 8; i++)
+  for (int i = 0; i < pow * 8; i++)
   {
     buffer.assign(s, index, 32);
     data.push_back(buffer);
     index += 32;
     cout<<data[i]<<" "<<index<<endl;
-  }     //padalina string i 32 bitu blokus
-  
-  vector<string> values = data;
+  }                                 //padalina string i 32 bitu blokus
+  index = 0;
+  vector<string> values;
   string calc = "";
   string H1 = hashes[0], H2 = hashes[1], H3 = hashes[2], H4 = hashes[3], H5 = hashes[4], H6 = hashes[5], H7 = hashes[6], H8 = hashes[7], T1 = "", T2 = "";
 
   for (int i = 0; i < pow; i++)
   {
+    vector<string> values;
+    for (int k = 0; k < 8; k++)
+    {
+      buffer.assign(s, index, 32);
+      values.push_back(buffer);
+      index += 32;
+      cout<<values[k]<<" "<<index<<endl;
+    }
     for (int i = 8; i < 32; i++)
     {
       calc = XOR(XOR(sigma1(values[i-1]), values[i-3]), XOR(sigma0(values[i-7]), values[i-8]));
       values.push_back(calc);
-      //cout << calc << endl;
+      cout << calc << endl;
     }
     string a = H1, b = H2, c = H3, d = H4, e = H5, f = H6, g = H7, h = H8;
 
     for (int i = 0; i < 32; i++)
     {
-      T1 = XOR(XOR(XOR(XOR(h, sigma3(e)), sigma4(e, f, g)), sha256_k[i]), w[i]);
+      T1 = XOR(XOR(XOR(XOR(h, sigma3(e)), sigma4(e, f, g)), sha256_k[i]), values[i]);
       T2 = XOR(sigma2(a), sigma5(a, b, c));
       h = g;
       g = f;
@@ -142,10 +180,8 @@ string hash(string input)
     H7 = XOR(H7, g);
     H8 = XOR(H8, h);
   }
-
-  
-  cout<<endl<<index;
-  return "";
+  string rez = toHex(H1) + toHex(H2) + toHex(H3) + toHex(H4) + toHex(H5) + toHex(H6) + toHex(H7) + toHex(H8);
+  return rez;
 }
 
 string rightrotate(string s, int d)    
@@ -227,17 +263,18 @@ string XOR(string a, string b)
   return ans;
 }
 
-void calculation(vector<string> values)
+string toHex(string bin)
 {
-  
-  
+    int result = 0;
+    int binL = bin.length();
+    for(size_t count = 0; count < binL ; ++count)
+    {
+        result *=2;
+        result += bin[count]=='1'? 1 :0;
+    }  
+
+    std::stringstream ss;
+    ss << std::hex << std::setw(8) << std::setfill('0')  << result;
+
+    return (ss.str());
 }
-
-// formatInput(input)
-// {
-//   while(.length() < 223) //32bitai zinutes ilgui
-//   {
-    
-//   }
-
-// }
