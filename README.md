@@ -23,3 +23,5 @@
 - 1000Symbols4.txt, Hash - 273244f3306490cb4b87c0229b527bd51c3077e13c1444baf15619980d534999
 4. Tuščias failas:
 - empty.txt, Hash - fab1761db33bff7ea9d0f8abf6b7a43153a2ae90145aa90bf0c3ed8c31528d34
+- 5. Efektyvumas:
+- <br/>![image](https://user-images.githubusercontent.com/92015185/206902565-4e92bbc5-0da7-4238-8b7f-fd29777c1a37.png)
