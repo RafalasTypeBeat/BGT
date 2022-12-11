@@ -13,7 +13,7 @@ using namespace std;
 string toBinary(int x);
 string convert(string input);
 string hashing(int pow, string s);
-void read_file(string input);
+void read_file(string input, bool type);
 string rightrotate(string s, int d);
 string sigma0(string s);
 string sigma1(string s);
@@ -57,27 +57,42 @@ const string sha256_k[64] =
         "10010000101111101111111111111010", "10100100010100000110110011101011", "10111110111110011010001111110111", "11000110011100010111100011110010", 
         };
 
-int main()
+int main(int argc, char* argv[])
 {
-  bool choice;
+  bool choice, type = 0;
   string input = "";
+  cout << argc;
+  system("pause");
+  if (argc > 1) 
+  {
+    type = 1;
+    read_file(argv[1], type);
+  }
+  else
+  {
   cout << "Skaityti faila(1), ivesti(0): ";
   cin >> choice;
-	if (choice) read_file(input);
+	if (choice) read_file(input, type);
   else
   {
     cout << "Iveskite teksta: ";
     getline(cin >> ws, input);
     cout << "Sugeneruotas hash: "<< endl << convert(input);
   }
+  }
 }
 
-void read_file(string input) 
+void read_file(string input, bool type) 
 {
-  string pav;
-  cout << "Failo pavadinimas be .txt : " << endl;
-  cin >> pav;
-  ifstream in("./tests/" + pav + ".txt");
+  ifstream in;
+  if (type) in.open(input);
+  else
+  {
+    string pav;
+    cout << "Failo pavadinimas be .txt : " << endl;
+    cin >> pav;
+    in.open("./tests/" + pav + ".txt");
+  }
   stringstream buffer;
   buffer.clear();
   if (in.is_open()) 
