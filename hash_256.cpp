@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <iomanip>
 #include <fstream>
+#include <chrono>
+#include <numeric>
 
 using namespace std;
 
@@ -24,6 +26,8 @@ string sigma5(string a, string b, string c);
 string toHex(string bin);
 string XOR(string a, string b);
 void generateBlocks(vector<string> s);
+void compare(string input);
+void testAvalancheEffect(string input);
 
 const string hashes[8] = 
         {
@@ -61,25 +65,24 @@ int main(int argc, char* argv[])
 {
   bool choice, type = 0;
   string input = "";
-  cout << argc;
-  system("pause");
-  if (argc > 1) 
-  {
-    type = 1;
-    read_file(argv[1], type);
-  }
-  else
-  {
-  cout << "Skaityti faila(1), ivesti(0): ";
-  cin >> choice;
-	if (choice) read_file(input, type);
-  else
-  {
-    cout << "Iveskite teksta: ";
-    getline(cin >> ws, input);
-    cout << "Sugeneruotas hash: "<< endl << convert(input);
-  }
-  }
+  testAvalancheEffect(argv[1]);
+  // if (argc > 1) 
+  // {
+  //   type = 1;
+  //   read_file(argv[1], type);
+  // }
+  // else
+  // {
+  // cout << "Skaityti faila(1), ivesti(0): ";
+  // cin >> choice;
+	// if (choice) read_file(input, type);
+  // else
+  // {
+  //   cout << "Iveskite teksta: ";
+  //   getline(cin >> ws, input);
+  //   cout << "Sugeneruotas hash: "<< endl << convert(input);
+  // }
+  // }
 }
 
 void read_file(string input, bool type) 
@@ -108,6 +111,29 @@ void read_file(string input, bool type)
   }
 }
 
+void compare(string input)
+{
+  auto start = std::chrono::high_resolution_clock::now();
+  ifstream in(input);
+  string val1, val2;
+  int count = 0, num;
+  for (int i = 0; i < 25; i++)
+  {
+    cout << "num :" << num << " count: " << count << endl;
+    num = 0;
+  while (num < 1000) 
+  {
+    num ++;
+    in >> val1 >> val2;
+    if (convert(val1) == convert(val2)) count ++;
+  } 
+  }
+  auto end = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> diff = end - start;
+  cout << "uztruko: " << diff.count() << endl;
+  cout << count;
+}
+
 string toBinary(int x)
 {
   std::bitset<8> bin_x(x);
@@ -131,7 +157,7 @@ string convert(string input)
   int apendZeros = (256 * pow) - newL - 32; //32bitai saugoti string ilgiui
   s.append(apendZeros, '0');          //padaro 224 bitu ilgio
   s += orgLenght.to_string();
-  cout<<endl <<s<<endl;
+  //cout<<endl <<s<<endl;
   int size = pow * 8;
 
   return hashing(pow, s);
@@ -139,6 +165,7 @@ string convert(string input)
 
 string hashing(int pow, string s)
 {
+  //auto start = std::chrono::high_resolution_clock::now();
   vector<string> data;
   int index = 0;
   string buffer;
@@ -148,7 +175,7 @@ string hashing(int pow, string s)
     buffer.assign(s, index, 32);
     data.push_back(buffer);
     index += 32;
-    cout<<data[i]<<" "<<index<<endl;
+    //cout<<data[i]<<" "<<index<<endl;
   }                                 //padalina string i 32 bitu blokus
   index = 0;
   vector<string> values;
@@ -163,13 +190,13 @@ string hashing(int pow, string s)
       buffer.assign(s, index, 32);
       values.push_back(buffer);
       index += 32;
-      cout<<values[k]<<" "<<index<<endl;
+      //cout<<values[k]<<" "<<index<<endl;
     }
     for (int i = 8; i < 32; i++)
     {
       calc = XOR(XOR(sigma1(values[i-1]), values[i-3]), XOR(sigma0(values[i-7]), values[i-8]));
       values.push_back(calc);
-      cout << calc << endl;
+      //cout << calc << endl;
     }
     string a = H1, b = H2, c = H3, d = H4, e = H5, f = H6, g = H7, h = H8;
 
@@ -196,6 +223,9 @@ string hashing(int pow, string s)
     H8 = XOR(H8, h);
   }
   string rez = toHex(H1) + toHex(H2) + toHex(H3) + toHex(H4) + toHex(H5) + toHex(H6) + toHex(H7) + toHex(H8);
+  // // auto end = std::chrono::high_resolution_clock::now();
+  // // std::chrono::duration<double> diff = end - start;
+  // cout << diff.count() << endl;
   return rez;
 }
 
@@ -292,4 +322,66 @@ string toHex(string bin)
     ss << std::hex << std::setw(8) << std::setfill('0')  << result;
 
     return (ss.str());
+}
+
+void testAvalancheEffect(string input) 
+{
+  string text, hash;
+  vector<string> hashes1, hashes2;
+  vector<double> skirtumai, skirtumai2;
+  ifstream in(input);
+  stringstream buffer;
+
+  if (in.is_open()) {
+    buffer << in.rdbuf();
+    in.close();
+  }
+  while(!buffer.eof()) {
+    getline(buffer, text, ' ');
+    hash = convert(text);
+    hashes1.push_back(hash);
+    getline(buffer, text, ' ');
+    hash = convert(text);
+    hashes2.push_back(hash);
+  }
+
+  for (int s = 0; s < hashes1.size(); s++) {
+    bitset<512> b1;
+    for (int i = 0; i < 32; ++i) {
+        char c = hashes1.at(s).at(i);
+        for (int j = 7; j >= 0 && c; --j) {
+            if (c & 0x1) {
+                b1.set(8 * i + j);
+            }
+            c >>= 1;
+        }
+    }
+
+    bitset<512> b2;
+    for (int i = 0; i < 32; ++i) {
+        char c = hashes2.at(s).at(i);
+        for (int j = 7; j >= 0 && c; --j) {
+            if (c & 0x1) {
+                b2.set(8 * i + j);
+            }
+            c >>= 1;
+        }
+    }
+
+    double sutapimai = 0, sutapimai2 = 0;
+
+    for(int j = 0; j < 256; j++) if(b1.test(j) != b2.test(j)) sutapimai++;
+    for(int j = 0; j < 32; j++) if(hashes1.at(s).at(j) != hashes2.at(s).at(j)) sutapimai2++;
+
+    skirtumai.push_back(sutapimai / 256 * 100);
+    skirtumai2.push_back(sutapimai2 / 32 * 100);
+  }
+  cout << "Bitu lygmenyje:" << endl;
+  cout << "Min skirtumo reiksme = " << *min_element(skirtumai.begin(), skirtumai.end()) << "%" << endl;
+  cout << "Max skirtumo reiksme = " << *max_element(skirtumai.begin(), skirtumai.end()) << "%" << endl;
+  cout << "Vidurkines skirtumo reiksme = " << accumulate( skirtumai.begin(), skirtumai.end(), 0.0) / skirtumai.size() << "%" << endl;
+  cout << "Hash'o lygmenyje:" << endl;
+  cout << "Min skirtumo reiksme = " << *min_element(skirtumai2.begin(), skirtumai2.end()) << "%" << endl;
+  cout << "Max skirtumo reiksme = " << *max_element(skirtumai2.begin(), skirtumai2.end()) << "%" << endl;
+  cout << "Vidurkines skirtumo reiksme = " << accumulate( skirtumai2.begin(), skirtumai2.end(), 0.0) / skirtumai2.size() << "%" << endl;
 }
