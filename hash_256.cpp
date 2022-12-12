@@ -65,24 +65,23 @@ int main(int argc, char* argv[])
 {
   bool choice, type = 0;
   string input = "";
-  testAvalancheEffect(argv[1]);
-  // if (argc > 1) 
-  // {
-  //   type = 1;
-  //   read_file(argv[1], type);
-  // }
-  // else
-  // {
-  // cout << "Skaityti faila(1), ivesti(0): ";
-  // cin >> choice;
-	// if (choice) read_file(input, type);
-  // else
-  // {
-  //   cout << "Iveskite teksta: ";
-  //   getline(cin >> ws, input);
-  //   cout << "Sugeneruotas hash: "<< endl << convert(input);
-  // }
-  // }
+  if (argc > 1) 
+  {
+    type = 1;
+    read_file(argv[1], type);
+  }
+  else
+  {
+  cout << "Skaityti faila(1), ivesti(0): ";
+  cin >> choice;
+	if (choice) read_file(input, type);
+  else
+  {
+    cout << "Iveskite teksta: ";
+    getline(cin >> ws, input);
+    cout << "Sugeneruotas hash: "<< endl << convert(input);
+  }
+  }
 }
 
 void read_file(string input, bool type) 
